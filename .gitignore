@@ -1,0 +1,14 @@
+# State of models, optimizer, scheduler
+*.pth
+
+# Images
+*.png
+
+# Pycache
+**/__pycache__
+
+# Results
+*.json
+
+# Experiment descriptions
+*.txt
