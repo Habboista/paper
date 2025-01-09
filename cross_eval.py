@@ -16,7 +16,7 @@ from src.model.DepthNet import DepthNet
 from src.validator import compute_metrics
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--experiment', type=str, default='proposed_warp_40', help="Which experiment model to evaluate")
+parser.add_argument('--experiment', type=str, default='corrected', help="Which experiment model to evaluate")
 args = parser.parse_args()
 
 model_warp = DepthNet(depth=50, input_size=(300, 300), share_encoder_for_confidence_prediction=True, pretrained=True)

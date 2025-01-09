@@ -31,9 +31,27 @@ def merge(
         pred = np.clip(pred, a_min=None, a_max=np.log(200.))
         pd.patch_depth = np.exp(pred)
 
-        weight_iamge = skimage.transform.warp(base_weight, inverse_map=pd.tform, output_shape=image.shape[:-1])
-        weights.append(weight_iamge)
-        # if conf.item() > 0.9:
+        if pd.preserve_camera:
+            weight_image = skimage.transform.warp(base_weight, inverse_map=pd.tform, output_shape=image.shape[:-1])
+        else:
+            weight_image = np.zeros(image.shape[:2], dtype=np.float32)
+            
+            h, w = pd.original_size
+ 
+            base_weight_resized = skimage.transform.resize(base_weight, output_shape=pd.original_size, order=1)
+
+            h_top = h // 2
+            h_bottom = h - h_top
+            w_left = w // 2
+            w_right = w - w_left
+
+            weight_image[
+                pd.center_y - h_top : pd.center_y + h_bottom,
+                pd.center_x - w_left   : pd.center_x + w_right,
+            ] = base_weight_resized
+
+        weights.append(weight_image)
+        
         image_depth_list.append(pd.project_to_image(camera))
     
     pred = np.stack(image_depth_list, axis=0)

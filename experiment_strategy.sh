@@ -1,3 +1,0 @@
-source train_coarse_models.sh
-source train_mid_models.sh
-source train_fine_models.sh

@@ -91,7 +91,7 @@ class PatchDescriptor:
                 image_depth[
                     self.center_y - h_top : self.center_y + h_bottom,
                     self.center_x - w_left   : self.center_x + w_right,
-                ]= patch_depth
+                ] = patch_depth
 
                 return image_depth
 

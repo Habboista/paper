@@ -1,7 +1,7 @@
 conda activate paper0
 
 python3 train_proposed.py \
-    --name coarse_corner_crop \
+    --name coarse_grid_warp \
     --mode full \
     \
     --epochs 40 \
@@ -19,12 +19,14 @@ python3 train_proposed.py \
     --numscales 3 \
     --scaling 1.5 \
     \
-    --strategy corner \
+    --strategy grid \
     \
     --shareencoder \
     --wconf 0.0 \
     \
-    --maxsamplesperimage 4
+    --maxsamplesperimage 4 \
+    \
+    --preservecamera
 
 #python3 train_proposed.py \
 #    --name coarse_grid_warp \
