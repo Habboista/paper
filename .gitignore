@@ -12,3 +12,6 @@
 
 # Experiment descriptions
 *.txt
+
+# Notebooks
+*.ipynb
