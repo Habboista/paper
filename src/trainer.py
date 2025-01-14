@@ -97,7 +97,7 @@ class Trainer:
             l1_reg = l1_reg / num_params
 
             # Total loss
-            loss = gt_depth_loss + 0.1 * velo_depth_loss + self.conf_weight * conf_loss + 0.01 * l1_reg
+            loss = gt_depth_loss #+ 0.1 * velo_depth_loss + self.conf_weight * conf_loss + 0.01 * l1_reg
 
             # backpropagation
             loss.backward()

@@ -16,11 +16,11 @@ from src.model.DepthNet import DepthNet
 from src.validator import compute_metrics
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--experiment', type=str, default='corrected', help="Which experiment model to evaluate")
+parser.add_argument('--experiment', type=str, default='borders', help="Which experiment model to evaluate")
 args = parser.parse_args()
 
 model_warp = DepthNet(depth=50, input_size=(300, 300), share_encoder_for_confidence_prediction=True, pretrained=True)
-model_warp.load_state_dict(torch.load(os.path.join('src', 'results', 'coarse_corner_warp', 'run_01', 'checkpoints', 'model_checkpoint_040.pth'), weights_only=True, map_location='cpu'))
+model_warp.load_state_dict(torch.load(os.path.join('src', 'results', 'coarse_grid_warp', 'run_01', 'checkpoints', 'model_checkpoint_040.pth'), weights_only=True, map_location='cpu'))
 model_warp = model_warp.to('cuda')
 
 model_crop = DepthNet(depth=50, input_size=(300, 300), share_encoder_for_confidence_prediction=True, pretrained=True)
@@ -133,6 +133,9 @@ def main():
         assert pred_b.shape == pred_h.shape
 
         valid = (pred_depth_warp > 0) & (pred_b > 0) & (pred_depth_crop > 0) & (pred_h > 0)
+
+        #_, w = valid.shape
+        #valid[:, w//3:(2*w)//3] = 0
         
         pred_depth_warp[~valid] = 0.
         pred_depth_crop[~valid] = 0.

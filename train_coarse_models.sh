@@ -1,7 +1,7 @@
 conda activate paper0
 
 python3 train_proposed.py \
-    --name coarse_grid_warp \
+    --name coarse_grid_warp_225 \
     --mode full \
     \
     --epochs 40 \
@@ -12,8 +12,8 @@ python3 train_proposed.py \
     --baseH 100 \
     --baseW 100 \
     \
-    --outH 300 \
-    --outW 300 \
+    --outH 225 \
+    --outW 225 \
     \
     --scale 2 \
     --numscales 3 \
@@ -27,6 +27,34 @@ python3 train_proposed.py \
     --maxsamplesperimage 4 \
     \
     --preservecamera
+
+#python3 train_proposed.py \
+#    --name coarse_grid_warp \
+#    --mode full \
+#    \
+#    --epochs 40 \
+#    --workers 4 \
+#    --batch 8 \
+#    --modeldepth 50 \
+#    \
+#    --baseH 100 \
+#    --baseW 100 \
+#    \
+#    --outH 300 \
+#    --outW 300 \
+#    \
+#    --scale 2 \
+#    --numscales 3 \
+#    --scaling 1.5 \
+#    \
+#    --strategy grid \
+#    \
+#    --shareencoder \
+#    --wconf 0.0 \
+#    \
+#    --maxsamplesperimage 4 \
+#    \
+#    --preservecamera
 
 #python3 train_proposed.py \
 #    --name coarse_grid_warp \
