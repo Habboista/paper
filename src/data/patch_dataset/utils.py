@@ -174,78 +174,38 @@ def detect_points_of_interest(
 
 EDGE_DETECTOR_DEVICE = 'cuda'
 
-def get_edge_detector(self):
-    """Kinda arbitrary function if you read it, but
-    successfully loads the edge detection model.
-    """
-    class Args:
-        config = 'carv4'
-        dil = True
-        sa = True
-    self.edge_detector = pidinet(Args)
-    state = torch.load(os.path.join('proposed', 'edge_detection', 'table7_pidinet.pth'), weights_only=True)['state_dict']
-    new_state = dict()
-    for k in state.keys():
-        new_state[k[7:]] = state[k]
-    self.edge_detector.load_state_dict(new_state)
-    return self.edge_detector
-
-def compute_edge_map(self, image: np.ndarray, scale: int) -> np.ndarray:
-    t_image: torch.Tensor = image_np2torch(image, normalize=True).unsqueeze(0).to(EDGE_DETECTOR_DEVICE)
-    # print("min", t_image.min(), "mean", t_image.mean(), "max", t_image.max(), "std", t_image.std())
-    self.edge_detector.eval()
-    with torch.no_grad():
-        multi_scale_edge_map: list[torch.Tensor] = self.edge_detector(t_image)
-
-    edge_map: np.ndarray = multi_scale_edge_map[scale].cpu().squeeze().numpy()
-    edge_map = (edge_map > 0.5) # dtype = bool
-    edge_map = skimage.morphology.erosion(edge_map, footprint=skimage.morphology.disk(3))
-    edge_map = skimage.util.img_as_ubyte(edge_map)
-
-    return edge_map
-
-def load_edge_map(index: int) -> np.ndarray:
-    # Getting the name of the filename (code from KITTIDataset __getitem__ and load_image)
-    line = self.kitti_dataset.filenames[index].split(' ')
-
-    if len(line) != 3:
-        raise ValueError(f"line {index} does not contain 3 fields")
-
-    folder, frame_index, side = line
-
-    fn = f"edge_{int(frame_index):010d}.png"
-    if side not in ["l", "r"]:
-        raise ValueError(f"Unknown side {side}")
-    filename = os.path.join(
-        self.kitti_dataset.data_path,
-        folder,
-        "image_02" if side == "l" else "image_03",
-        "data",
-        fn,
-    )
-    np_edge_map: np.ndarray = skimage.io.imread(filename, as_gray=True)
-    return np_edge_map
-
-def generate_grid(image: np.ndarray, size: tuple[int, int], scale: int): #(blsize, stride, img, box):
+def generate_grid(image: np.ndarray, size: tuple[int, int], scale: int, relative_x_overlap: float = 0.75, relative_y_overlap: float = 0.75):
     H, W, _ = image.shape
     h, w = size
     
-    N_w = 3 * (W - w) // w + 1
-    N_h = 3 * (H - w) // h + 1
-    if N_w % 2 == 0:
-        N_w += 1
-    if N_h % 2 == 0:
-        N_h += 1
+    delta_x = int(w * (1 - relative_x_overlap))
+    delta_y = int(h * (1 - relative_y_overlap))
+
+    N_x = (W - w) // delta_x
+    N_y = (H - w) // delta_y
+
+    # I want the center always to be considered
+    # since it's the only valid point of the grid independent of the patch size
+    if N_x % 2 == 0:
+        N_x += 1
+    if N_y % 2 == 0:
+        N_y += 1
+
     grid_x, grid_y = np.meshgrid(
-        np.linspace(w//2, W - w//2, N_w, dtype=np.int64),
-        np.linspace(h//2, H - h//2, N_h, dtype=np.int64),
+        np.concatenate([
+            np.linspace(w//2, W//2, (N_x - 1)//2 + 1, endpoint=True, dtype=np.int64)[:-1],
+            np.linspace(W//2, W - (w - w//2), (N_x - 1)//2 + 1, endpoint=True, dtype=np.int64),
+        ]),
+        np.concatenate([
+            np.linspace(h//2, H//2, (N_y - 1)//2 + 1, endpoint=True, dtype=np.int64)[:-1],
+            np.linspace(H//2, H - (h - h//2), (N_y - 1)//2 + 1, endpoint=True, dtype=np.int64),
+        ]),
         indexing='xy'
     )
 
     grid_x = grid_x.flatten()
     grid_y = grid_y.flatten()
     #grid_s = scale * np.ones_like(grid_x)
-
     return grid_x, grid_y #, grid_s
 
 def generate_initial_patches(image: np.ndarray, aspect_ratio: float):
@@ -275,8 +235,6 @@ def generate_initial_patches(image: np.ndarray, aspect_ratio: float):
             patch_bound_list[str(counter1)]['size'] = patch_bound[2]
             counter1 = counter1 + 1
     return patch_bound_list
-
-
 
 def get_rect(x, y, h, w):
     
@@ -322,7 +280,6 @@ def adaptiveselection(integral_grad, XYS, aspect_ratio, optimal_edge_density) ->
             # Enlarge each patch until the gradient density of the patch is equal
             # to the whole image gradient density
             while True:
-                
                 
                 if s + 1 >= NUM_SCALES:
                     break

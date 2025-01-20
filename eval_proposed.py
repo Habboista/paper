@@ -24,7 +24,7 @@ model.load_state_dict(torch.load(os.path.join('src', 'results', 'coarse_grid_war
 model = model.to('cuda')
 
 def main():
-    kitti = KITTIDataset('test', center_crop=False, from_velodyne=False)
+    kitti = KITTIDataset('test', center_crop=False)
     full_image_eval_set = ValDataset(kitti, False)
     patch_eval_set = PatchDataset(
         kitti_dataset=kitti,

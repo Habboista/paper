@@ -56,10 +56,6 @@ parser.add_argument('--scale', type=int, default=1, help="Which scale to work wi
 parser.add_argument('--numscales', type=int, default=3, help="Number of scales to work with")
 parser.add_argument('--scaling', type=float, default=1.5, help="Scaling factor")
 
-# Always put these, not really using them right now
-parser.add_argument('--velo', action='store_true', help='Whether to use raw data or corrected projection')
-parser.add_argument('--project', action='store_true', help='Whether to project raw data on image plane')
-
 args = parser.parse_args()
 
 def main():
@@ -128,7 +124,7 @@ def main():
         skip_valid = True
         args.trainfrac = None
     
-    train_kitti = KITTIDataset(args.mode, percentage=args.trainfrac, center_crop=False, from_velodyne=args.velo, project=args.project)
+    train_kitti = KITTIDataset(args.mode, percentage=args.trainfrac, center_crop=False)
     train_set = PatchDataset(
         train_kitti,
         base_size,
@@ -144,19 +140,22 @@ def main():
     train_loader = data.DataLoader(train_set, batch_size=args.batch, shuffle=True, num_workers=args.workers, collate_fn=collate_fn)
     train_logger = Logger(internal_args['info_dir'], periodic_plot=True, period=50)
     trainer = Trainer(
-        model,
-        optimizer,
-        scheduler,
-        criterion,
-        args.wconf,
-        train_loader,
-        args.affine,
-        train_logger,
-        internal_args['checkpoints_dir'],
+        model=model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        criterion=criterion,
+        conf_weight=args.wconf,
+        gt_weight=1.,
+        velo_weight=0.,
+        reg_weight=0.,
+        data_loader=train_loader,
+        affine=args.affine,
+        logger=train_logger,
+        checkpoints_dir=internal_args['checkpoints_dir'],
     )
 
     # VALIDATOR
-    val_kitti = KITTIDataset('val', percentage=args.valfrac, center_crop=False, from_velodyne=args.velo, project=True)
+    val_kitti = KITTIDataset('val', percentage=args.valfrac, center_crop=False)
     val_set = PatchDataset(
         val_kitti,
         base_size,

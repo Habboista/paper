@@ -16,7 +16,7 @@ from src.validator import compute_metrics
 from src.data.kitti.utils import depth_torch2np
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--experiment', type=str, default='baseline', help="Which experiment model to evaluate")
+parser.add_argument('--experiment', type=str, default='baseline_only_gt', help="Which experiment model to evaluate")
 parser.add_argument('--epochs', type=int, default=40, help="Number of epochs that the model was trained")
 parser.add_argument('--half', action='store_true', help="Whether to half the size of the input image")
 parser.add_argument('--velo', action='store_true', help="Use velo data for evaluation")

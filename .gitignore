@@ -10,8 +10,8 @@
 # Results
 *.json
 
-# Experiment descriptions
-*.txt
+# Experiments Descriptions
+**/description.txt
 
 # Notebooks
 *.ipynb

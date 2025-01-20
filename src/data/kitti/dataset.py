@@ -35,13 +35,11 @@ class KITTIDataset:
             if True, then project velodyne point cloud on image plane during runtime, otherwise the resulting depth map is loaded.
             If from_velodyne is False, this has no effect.
     """
-    def __init__(self, mode: str, percentage: Optional[float] = None, center_crop: bool = False, from_velodyne: bool = True, project: bool = False):
+    def __init__(self, mode: str, percentage: Optional[float] = None, center_crop: bool = False):
         self.mode = mode
         self.data_path: str = PATH
         self.filenames: list[str]
         self.center_crop = center_crop
-        self.from_velodyne = from_velodyne
-        self.project = project
 
         self.min_depth: float = 1e-3
         self.max_depth: float = 80.
@@ -97,11 +95,6 @@ class KITTIDataset:
 
         velo_depth = self.load_velo_depth_map(folder, frame_index, side)
         gt_depth = self.load_gt_depth_map(folder, frame_index, side)
-        #if self.project and self.from_velodyne:
-        #    point_cloud: np.ndarray = self.load_point_cloud(folder, frame_index, side)
-        #    depth = cloud2depth(point_cloud, camera)
-        #else:
-        #    depth = self.load_depth_map(folder, frame_index, side)
 
         if self.center_crop:
             px = camera.K[0, 2]

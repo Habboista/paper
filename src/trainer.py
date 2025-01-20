@@ -20,6 +20,9 @@ class Trainer:
     scheduler: lr_scheduler.LRScheduler
     criterion: nn.Module
     conf_weight: float
+    gt_weight: float
+    velo_weight: float
+    reg_weight: float
     data_loader: data.DataLoader
     affine: bool
     logger: Logger
@@ -97,7 +100,11 @@ class Trainer:
             l1_reg = l1_reg / num_params
 
             # Total loss
-            loss = gt_depth_loss #+ 0.1 * velo_depth_loss + self.conf_weight * conf_loss + 0.01 * l1_reg
+            loss = \
+                self.gt_weight * gt_depth_loss + \
+                self.velo_weight * velo_depth_loss + \
+                self.conf_weight * conf_loss + \
+                self.reg_weight * l1_reg
 
             # backpropagation
             loss.backward()
@@ -115,14 +122,13 @@ class Trainer:
             if len(velo_valid_samples) > 0:
                 loss_info['velo_depth_loss'] = velo_depth_loss.detach().item()
             loss_info['conf_loss'] = conf_loss.detach().item()
-            loss_info['l1_reg'] = l1_reg.detach().item()
             self.logger.log_info(loss_info)
 
             # Zero gradients
             self.optimizer.zero_grad(set_to_none=True)
 
             # Free memory (sometimes it doesn't automatically free)
-            del loss, image, gt_depth, velo_depth, pred
+            del loss, image, gt_depth, velo_depth, conf_loss, l1_reg, pred
         
         # Update learning rate
         self.scheduler.step()

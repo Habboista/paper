@@ -8,7 +8,7 @@ from src.data.patch_dataset.utils import get_patch_size
 from src.data.patch_dataset.utils import generate_grid
 from src.data.patch_dataset.utils import adaptiveselection
 
-# Generating local patches to perform the local refinement described in section 6 of the main paper.
+# Sample strategy of BoostingDepth, it is a multiscale strategy
 def edge_sample(
     index: int,
     image: np.ndarray,

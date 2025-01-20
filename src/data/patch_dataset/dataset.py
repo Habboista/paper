@@ -29,16 +29,7 @@ class PatchDataset(data.Dataset):
     """Dataset that returns patches from each image using a sampling strategy.
 
     Args:
-        kitti_dataset:
-            A KITTIDataset object which specifies the data to sample patches from, i.e. images, cameras and depth maps.
-        aspect_ratio:
-            Aspect ratio of sampled patches
-        sampling_strategy:
-            a string specifying which sampling strategy to apply. Possible choices are 'random', 'grid', 'corner'
-        max_num_samples_per_image:
-            Maximum number of patches to sample from one image
-        preserve_camera:
-            Whether to apply a warp that makes sure that the sampled patch was (virtually) acquired by a certain camera.
+        ...
     """
     def __init__(
         self,
@@ -138,10 +129,9 @@ class PatchDataset(data.Dataset):
         else:
             XY = self.sampling_strategy(-1, image, camera, self.base_size, self.scale, self.num_scales, self.scaling_factor)
             rng = np.random.default_rng()
+        
         rng.shuffle(XY, axis=0)
         H, W, _ = image.shape
-
-        XY = np.vstack([XY, np.array([[W // 2, H // 2]], dtype=np.int64)]) # Safe point
         
         num_valid = 0
         patch_descriptors: list[PatchDescriptor] = []
@@ -160,7 +150,7 @@ class PatchDataset(data.Dataset):
                 camera=patch_camera,
                 tform=tform,
             )
-
+            
             # Check if it has out-of-view pixels
             if pd.is_valid(image):
                 patch_descriptors.append(pd)

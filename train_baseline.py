@@ -41,10 +41,6 @@ parser.add_argument('--gamma', type=float, default=1., help="Multiplicative fact
 parser.add_argument('--affine', action='store_true', help="Work with affine depth")
 parser.add_argument('--half', action='store_true', help="Whether to half the size of the image before feeding the model.")
 
-# Always put these, not really using them right now
-parser.add_argument('--velo', action='store_true', help='Whether to use raw data or corrected projection')
-parser.add_argument('--project', action='store_true', help='Whether to project raw data on image plane')
-
 args = parser.parse_args()
 
 def main():
@@ -99,24 +95,27 @@ def main():
         skip_valid = True
         args.trainfrac = None
     
-    train_kitti = KITTIDataset(args.mode, percentage=args.trainfrac, center_crop=False, from_velodyne=args.velo, project=args.project)
+    train_kitti = KITTIDataset(args.mode, percentage=args.trainfrac, center_crop=False)
     train_set= TrainDataset(train_kitti, half_size=args.half)
     train_loader = data.DataLoader(train_set, batch_size=args.batch, shuffle=True, num_workers=args.workers)
     train_logger = Logger(internal_args['info_dir'], periodic_plot=True, period=50)
     trainer = Trainer(
-        model,
-        optimizer,
-        scheduler,
-        criterion,
-        0., # Do not train the confidence head
-        train_loader,
-        args.affine,
-        train_logger,
-        internal_args['checkpoints_dir'],
+        model=model,
+        optimizer=optimizer,
+        scheduler=scheduler,
+        criterion=criterion,
+        conf_weight=0., # Do not train the confidence head
+        gt_weight=1.,
+        velo_weight=0.,
+        reg_weight=0.,
+        data_loader=train_loader,
+        affine=args.affine,
+        logger=train_logger,
+        checkpoints_dir=internal_args['checkpoints_dir'],
     )
 
     # VALIDATOR
-    val_kitti = KITTIDataset('val', percentage=args.valfrac, center_crop=True, from_velodyne=args.velo, project=True)
+    val_kitti = KITTIDataset('val', percentage=args.valfrac, center_crop=True)
     val_set = ValDataset(val_kitti, args.half)
     val_loader = data.DataLoader(val_set, batch_size=args.batch, shuffle=False, num_workers=args.workers)
     val_logger = Logger(internal_args['info_dir'])    
